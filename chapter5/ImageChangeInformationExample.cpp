@@ -54,7 +54,7 @@ int main()
 	imageViewer->Render();
 	imageViewer->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
 	imageViewer->SetSize(600,600);
-	imageViewer->GetRenderWindow()->SetWindowName("GetImageInformationExample");
+	imageViewer->GetRenderWindow()->SetWindowName("ImageChangeInformationExample");
 
 	Interactor->Initialize();
 	Interactor->Start();
