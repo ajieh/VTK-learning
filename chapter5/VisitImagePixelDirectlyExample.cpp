@@ -1,13 +1,3 @@
-/**********************************************************************
-
-  文件名: 5.3_VisitImagePixelDirectlyExample.cpp
-  Copyright (c) 张晓东, 罗火灵. All rights reserved.
-  更多信息请访问: 
-    http://www.vtkchina.org (VTK中国)
-	http://blog.csdn.net/www_doling_net (东灵工作室) 
-
-**********************************************************************/
-
 #include <vtkSmartPointer.h>
 #include <vtkImageViewer2.h>
 #include <vtkRenderWindow.h>
@@ -15,18 +5,15 @@
 #include <vtkRenderer.h>
 #include <vtkBMPReader.h>
 #include <vtkImageData.h>
+#include <vtkAutoInit.h>
 
-//测试图像：../data/lena.bmp
-int main(int argc, char* argv[])
+VTK_MODULE_INIT(vtkRenderingOpenGL2)
+VTK_MODULE_INIT(vtkInteractionStyle)
+
+int main()
 {
-	if (argc < 2)
-	{
-		std::cout<<argv[0]<<" "<<"ImageFile(*.bmp)"<<std::endl;
-		return EXIT_FAILURE;
-	}
-	vtkSmartPointer<vtkBMPReader> reader =
-		vtkSmartPointer<vtkBMPReader>::New();
-	reader->SetFileName(argv[1]);
+	vtkSmartPointer<vtkBMPReader> reader = vtkSmartPointer<vtkBMPReader>::New();
+	reader->SetFileName("D:\\Documents\\Material\\VTK-learn\\Examples\\Chap05\\DATA\\LENA.BMP");
 	reader->Update();
 
 	int dims[3];
@@ -35,41 +22,38 @@ int main(int argc, char* argv[])
 	int nbOfComp;
 	nbOfComp = reader->GetOutput()->GetNumberOfScalarComponents();
 
-	for(int k=0; k<dims[2]; k++)
+	//灏嗗浘鍍忕殑100 * 100鍖哄煙娑傞粦
+	for (int k = 0; k < dims[2]; k++)
 	{
-		for(int j=0; j<dims[1]; j++)
+		for (int j = 0; j < dims[1]; j++)
 		{
-			for(int i=0; i<dims[0]; i++)
+			for (int i = 0; i < dims[0]; i++)
 			{
-				if(i<100 && j<100)
+				if (i < 100 && j < 100)
 				{
-					unsigned char * pixel = 
-						(unsigned char *) ( reader->GetOutput()->GetScalarPointer(i, j, k) );
+					unsigned char * pixel =
+						static_cast<unsigned char*>(reader->GetOutput()->GetScalarPointer(i, j, k));
+					//RGB涓変釜鍒嗛噺
 					*pixel = 0;
-					*(pixel+1) = 0;
-					*(pixel+2) = 0;
+					*(pixel + 1) = 0;
+					*(pixel + 2) = 0;
 				}
 			}
 		}
 	}
+	vtkSmartPointer<vtkRenderWindowInteractor> Interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
-	vtkSmartPointer<vtkImageViewer2> imageViewer =
-		vtkSmartPointer<vtkImageViewer2>::New();
+	vtkSmartPointer<vtkImageViewer2> imageViewer = vtkSmartPointer<vtkImageViewer2>::New();
 	imageViewer->SetInputConnection(reader->GetOutputPort());
-
-	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-		vtkSmartPointer<vtkRenderWindowInteractor>::New();
-	imageViewer->SetupInteractor(renderWindowInteractor);
+	imageViewer->SetupInteractor(Interactor);
 	imageViewer->Render();
 	imageViewer->GetRenderer()->ResetCamera();
 	imageViewer->Render();
-
 	imageViewer->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
-	imageViewer->SetSize(640, 480);
+	imageViewer->SetSize(600,600);
 	imageViewer->GetRenderWindow()->SetWindowName("VisitImagePixelDirectlyExample");
 
-
-	renderWindowInteractor->Start();
-
-	return EXIT_SUCCESS;
+	Interactor->Initialize();
+	Interactor->Start();
+	return 0;
 }
