@@ -13,14 +13,13 @@
 #include <vtkSmartPointer.h>
 #include <vtkTextProperty.h>
 #include <vtkAutoInit.h>
-#include "vtkoutputwindow.h"
 
 VTK_MODULE_INIT(vtkRenderingOpenGL2)
+VTK_MODULE_INIT(vtkRenderingFreeType)//避免获取TextRenderer实例失败
 VTK_MODULE_INIT(vtkInteractionStyle)
 
 int main()
 {
-	vtkOutputWindow::SetGlobalWarningDisplay(0);
 	vtkSmartPointer<vtkJPEGReader> reader = vtkSmartPointer<vtkJPEGReader>::New();
 	reader->SetFileName("D:\\Documents\\Material\\VTK-learn\\Examples\\Chap05\\DATA\\lena-gray.jpg");
 	reader->Update();
@@ -66,7 +65,7 @@ int main()
 	double colors[3][3] = {
 		{ 1, 0, 0 },
 		{ 0, 1, 0 },
-		{ 0, 0, 1 } 
+		{ 0, 0, 1 }
 	};
 
 	int count = 0;
