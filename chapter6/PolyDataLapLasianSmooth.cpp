@@ -25,7 +25,7 @@ int main()
 	vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter =
 		vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
 	smoothFilter->SetInputConnection(reader->GetOutputPort());
-	smoothFilter->SetNumberOfIterations(100);//平滑次数
+	smoothFilter->SetNumberOfIterations(200);//平滑次数
 	smoothFilter->Update();
 
 	vtkSmartPointer<vtkPolyDataMapper> originalMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
