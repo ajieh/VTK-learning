@@ -1,96 +1,87 @@
-/**********************************************************************
-
-  ÎÄ¼şÃû: 7.2_MIPVolRenderingApp.cpp
-  Copyright (c) ÕÅÏş¶«, ÂŞ»ğÁé. All rights reserved.
-  ¸ü¶àĞÅÏ¢Çë·ÃÎÊ: 
-    http://www.vtkchina.org (VTKÖĞ¹ú)
-	http://blog.csdn.net/www_doling_net (¶«Áé¹¤×÷ÊÒ) 
-
-**********************************************************************/
-
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 #include <vtkStructuredPoints.h>
 #include <vtkStructuredPointsReader.h>
-#include <vtkVolumeRayCastMIPFunction.h>
-#include <vtkVolumeRayCastMapper.h>
+#include <vtkFixedPointVolumeRayCastMapper.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkVolumeProperty.h>
-#include <vtkAxesActor.h>
-#include <vtkImageShiftScale.h>
-#include <vtkImageCast.h>
+#include <vtkAutoInit.h>
 
-//²âÊÔ£º../data/mummy.128.vtk
-int main(int argc, char *argv[])
+VTK_MODULE_INIT(vtkRenderingOpenGL2)
+VTK_MODULE_INIT(vtkRenderingFreeType)
+VTK_MODULE_INIT(vtkInteractionStyle)
+VTK_MODULE_INIT(vtkRenderingVolumeOpenGL2);
+
+int main()
 {
-	if (argc < 2)
-	{
-		std::cout<<argv[0]<<" "<<"StructuredPointsFile(*.vtk)"<<std::endl;
-		return EXIT_FAILURE;
-	}
-
-	vtkSmartPointer<vtkStructuredPointsReader> reader =
-		vtkSmartPointer<vtkStructuredPointsReader>::New();
-	reader->SetFileName(argv[1]);
+	vtkSmartPointer<vtkStructuredPointsReader> reader = vtkSmartPointer<vtkStructuredPointsReader>::New();
+	reader->SetFileName("D:\\Documents\\Material\\VTK-learn\\Examples\\Chap07\\DATA\\mummy.128.vtk");
 	reader->Update();
 
-	vtkSmartPointer<vtkVolumeRayCastMIPFunction> rayCastFun = 
-		vtkSmartPointer<vtkVolumeRayCastMIPFunction>::New();
+	vtkSmartPointer<vtkFixedPointVolumeRayCastMapper> volumeMapper =
+		vtkSmartPointer<vtkFixedPointVolumeRayCastMapper>::New();
+	volumeMapper->SetInputData(reader->GetOutput());
+	volumeMapper->SetBlendModeToMaximumIntensity();
 
-	vtkSmartPointer<vtkVolumeRayCastMapper> volumeMapper = 
-		vtkSmartPointer<vtkVolumeRayCastMapper>::New();
-	volumeMapper->SetInput(reader->GetOutput());
-	volumeMapper->SetVolumeRayCastFunction(rayCastFun);//±ØĞëÉèÖÃ£¬·ñÔò³ö´í
-
-	vtkSmartPointer<vtkVolumeProperty> volumeProperty = 
-		vtkSmartPointer<vtkVolumeProperty>::New();
+	//è®¾ç½®ä½“ç»˜åˆ¶å±æ€§
+	vtkSmartPointer<vtkVolumeProperty> volumeProperty = vtkSmartPointer<vtkVolumeProperty>::New();
 	volumeProperty->SetInterpolationTypeToLinear();
-	volumeProperty->ShadeOn();
+	volumeProperty->ShadeOn();  //æ‰“å¼€é˜´å½±æµ‹è¯•
 	volumeProperty->SetAmbient(0.4);
 	volumeProperty->SetDiffuse(0.6);
 	volumeProperty->SetSpecular(0.2);
 
-	vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity = 
+	//è®¾ç½®ä¸é€æ˜åº¦ä¼ è¾“å‡½æ•°
+	vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity =
 		vtkSmartPointer<vtkPiecewiseFunction>::New();
-	compositeOpacity->AddPoint(70,   0.00);
-	compositeOpacity->AddPoint(90,   0.40);
-	compositeOpacity->AddPoint(180,  0.60);
+	compositeOpacity->AddPoint(70, 0.00);
+	compositeOpacity->AddPoint(90, 0.40);
+	compositeOpacity->AddPoint(180, 0.60);
 	volumeProperty->SetScalarOpacity(compositeOpacity);
 
-	vtkSmartPointer<vtkColorTransferFunction> color = 
+	//æ¢¯åº¦ä¸é€æ˜åº¦ä¼ è¾“å‡½æ•°
+	vtkSmartPointer<vtkPiecewiseFunction> volumeGradientOpacity =
+		vtkSmartPointer<vtkPiecewiseFunction>::New();
+	volumeGradientOpacity->AddPoint(10, 0.0);
+	volumeGradientOpacity->AddPoint(90, 0.5);
+	volumeGradientOpacity->AddPoint(100, 1.0);
+	volumeProperty->SetGradientOpacity(volumeGradientOpacity);
+
+	//è®¾ç½®é¢œè‰²
+	vtkSmartPointer<vtkColorTransferFunction> color =
 		vtkSmartPointer<vtkColorTransferFunction>::New();
-	color->AddRGBPoint(0.000,  0.00, 0.00, 0.00);
-	color->AddRGBPoint(64.00,  1.00, 0.52, 0.30);
-	color->AddRGBPoint(190.0,  1.00, 1.00, 1.00);
-	color->AddRGBPoint(220.0,  0.20, 0.20, 0.20);
+	color->AddRGBPoint(0.000, 0.00, 0.00, 0.00);
+	color->AddRGBPoint(64.00, 1.00, 0.52, 0.30);
+	color->AddRGBPoint(190.0, 1.00, 1.00, 1.00);
+	color->AddRGBPoint(220.0, 0.20, 0.20, 0.20);
 	volumeProperty->SetColor(color);
 
-	vtkSmartPointer<vtkVolume> volume = 
-		vtkSmartPointer<vtkVolume>::New();
+	vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
 	volume->SetMapper(volumeMapper);
 	volume->SetProperty(volumeProperty);
 
-	vtkSmartPointer<vtkRenderer> ren = vtkSmartPointer<vtkRenderer>::New();
-	ren->SetBackground(1.0, 1.0, 1.0);
-	ren->AddVolume( volume ); 
+	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+	renderer->SetBackground(1.0, 1.0, 1.0);
+	renderer->AddVolume(volume);
 
 	vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
-	renWin->AddRenderer(ren);
-	renWin->SetSize(640, 480);
+	renWin->AddRenderer(renderer);
+	renWin->SetSize(600, 480);
 	renWin->Render();
-	renWin->SetWindowName("MIPVolRenderingApp");
 
-	vtkSmartPointer<vtkRenderWindowInteractor> iren = 
-		vtkSmartPointer<vtkRenderWindowInteractor>::New();
+	vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	iren->SetRenderWindow(renWin);
-	ren->ResetCamera();
+	renderer->ResetCamera();
 
 	renWin->Render();
 	iren->Start();
-
-	return EXIT_SUCCESS;
+	return 0;
 }
+
+
+
+
